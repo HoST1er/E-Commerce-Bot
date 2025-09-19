@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="data.db" uuid="1dee9789-f703-43f9-b384-8b0257df8101">
+    <data-source source="LOCAL" name="data.db" uuid="3ea1765e-19ec-4b94-b836-7898bbfc8342">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\andru\PycharmProjects\tg-ecommerce-bot\data.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\andru\PycharmProjects\E-Commerce-Bot\data.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
