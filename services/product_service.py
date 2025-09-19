@@ -64,14 +64,15 @@ class ProductService:
         return product
 
     @staticmethod
-    def add_product(name, price, description=None, category_id=None):
+    def add_product(name, price, description=None, category_id=None, photo=None):
         session = SessionLocal()
         try:
             product = Product(
                 name=name,
                 price=price,
                 description=description,
-                category_id=category_id
+                category_id=category_id,
+                photo=photo  # добавляем фото
             )
             session.add(product)
             session.flush()
@@ -80,7 +81,8 @@ class ProductService:
                 "name": product.name,
                 "price": product.price,
                 "description": product.description,
-                "category_id": product.category_id
+                "category_id": product.category_id,
+                "photo": product.photo
             }
             session.commit()
             return product_data
@@ -90,6 +92,32 @@ class ProductService:
             return None
         finally:
             session.close()
+    # def add_product(name, price, description=None, category_id=None):
+    #     session = SessionLocal()
+    #     try:
+    #         product = Product(
+    #             name=name,
+    #             price=price,
+    #             description=description,
+    #             category_id=category_id
+    #         )
+    #         session.add(product)
+    #         session.flush()
+    #         product_data = {
+    #             "id": product.id,
+    #             "name": product.name,
+    #             "price": product.price,
+    #             "description": product.description,
+    #             "category_id": product.category_id
+    #         }
+    #         session.commit()
+    #         return product_data
+    #     except Exception as e:
+    #         session.rollback()
+    #         print(f"Ошибка при добавлении продукта: {e}")
+    #         return None
+    #     finally:
+    #         session.close()
 
     @staticmethod
     def update_product(product_id, **kwargs):

@@ -1,3 +1,5 @@
+import os
+
 from telebot import types
 from services.product_service import ProductService
 from services.cart_service import CartService
@@ -38,7 +40,12 @@ def register(bot):
             text = f"📦 {p.name}\n💰 Цена: {p.price} руб."
             markup = types.InlineKeyboardMarkup()
             markup.add(types.InlineKeyboardButton(text="Добавить в корзину", callback_data=f"add_{p.id}"))
-            bot.send_message(call.message.chat.id, text, reply_markup=markup)
+            # Если есть фото и файл существует, отправляем фото
+            if p.photo and os.path.exists(p.photo):
+                with open(p.photo, "rb") as photo:
+                    bot.send_photo(call.message.chat.id, photo, caption=text, reply_markup=markup)
+            else:
+                bot.send_message(call.message.chat.id, text, reply_markup=markup)
 
     # --- Обработчик нажатий inline-кнопок "Добавить в корзину" ---
     @bot.callback_query_handler(func=lambda call: call.data.startswith("add_"))
