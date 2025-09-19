@@ -286,3 +286,6 @@ def register(bot):
             bot.send_message(message.chat.id, response)
         except Exception as e:
             bot.send_message(message.chat.id, f"❌ Ошибка при получении заказов: {e}")
+
+
+
