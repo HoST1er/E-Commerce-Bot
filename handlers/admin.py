@@ -15,7 +15,7 @@ admin_data = {}
 ADMIN_IDS = [328729390]
 
 # Папка для хранения фото товаров
-MEDIA_DIR = "media/products"
+MEDIA_DIR = "media"
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
 

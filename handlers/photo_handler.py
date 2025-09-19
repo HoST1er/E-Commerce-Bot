@@ -2,7 +2,7 @@ import os
 from services.db import SessionLocal
 from models.product import Product
 
-MEDIA_DIR = "media/products"
+MEDIA_DIR = "media"
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
 def save_product_photo(bot, message, product_data=None, product_id=None):

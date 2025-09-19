@@ -4,7 +4,7 @@ from services.db import SessionLocal
 from models.category import Category
 from models.product import Product
 
-MEDIA_PATH = "media/products"  # папка с фото
+MEDIA_PATH = "media"  # папка с фото
 
 def seed():
     session = SessionLocal()
