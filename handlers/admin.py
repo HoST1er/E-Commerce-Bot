@@ -1,5 +1,6 @@
 # admin.py
 import os
+from utils.config import Config
 from telebot import types
 from services.product_service import ProductService
 from services.order_service import OrderService
@@ -12,7 +13,7 @@ from models.product import Product
 admin_data = {}
 
 # Список админов (Telegram ID)
-ADMIN_IDS = [328729390]
+ADMIN_IDS = Config.ADMIN_IDS
 
 # Папка для хранения фото товаров
 MEDIA_DIR = "media"
