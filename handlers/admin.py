@@ -89,16 +89,14 @@ def register(bot):
             bot.send_message(message.chat.id, "❌ У вас нет доступа")
             return
         user_id = message.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        admin_data[user_id]["cancelled"] = False
+        admin_data[user_id] = {"cancelled": False}
         text, keyboard = add_cancel_button("Введите название товара:")
         msg = bot.send_message(message.chat.id, text, reply_markup=keyboard)
         bot.register_next_step_handler(msg, process_product_name)
 
     def process_product_name(message):
         user_id = message.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        if admin_data[user_id].get("cancelled"):
+        if admin_data.get(user_id, {}).get("cancelled"):
             return
         admin_data[user_id]["name"] = message.text
         text, keyboard = add_cancel_button("Введите цену товара:")
@@ -107,8 +105,7 @@ def register(bot):
 
     def process_product_price(message):
         user_id = message.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        if admin_data[user_id].get("cancelled"):
+        if admin_data.get(user_id, {}).get("cancelled"):
             return
         try:
             admin_data[user_id]["price"] = float(message.text)
@@ -123,8 +120,7 @@ def register(bot):
 
     def process_product_description(message):
         user_id = message.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        if admin_data[user_id].get("cancelled"):
+        if admin_data.get(user_id, {}).get("cancelled"):
             return
         desc = message.text
         admin_data[user_id]["description"] = None if desc.lower() == "нет" else desc
@@ -141,8 +137,7 @@ def register(bot):
     @bot.callback_query_handler(func=lambda call: call.data.startswith("category:"))
     def process_category(call):
         user_id = call.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        if admin_data[user_id].get("cancelled"):
+        if admin_data.get(user_id, {}).get("cancelled"):
             return
         cat_id = call.data.split(":")[1]
         if cat_id == "new":
@@ -157,8 +152,7 @@ def register(bot):
 
     def add_new_category(message):
         user_id = message.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        if admin_data[user_id].get("cancelled"):
+        if admin_data.get(user_id, {}).get("cancelled"):
             return
         category = CategoryService.add_category(message.text)
         if category:
@@ -169,11 +163,9 @@ def register(bot):
         else:
             bot.send_message(message.chat.id, "Ошибка при добавлении категории.")
 
-    # --- Сохранение фото ---
     def save_product_photo(bot, message, product_data=None, product_id=None):
         user_id = message.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        if admin_data[user_id].get("cancelled"):
+        if admin_data.get(user_id, {}).get("cancelled"):
             return
         if not message.photo:
             text, keyboard = add_cancel_button("Это не фото. Отправьте фото товара:")
@@ -220,8 +212,7 @@ def register(bot):
             bot.send_message(message.chat.id, "❌ У вас нет доступа")
             return
         user_id = message.from_user.id
-        admin_data.setdefault(user_id, {"cancelled": False})
-        admin_data[user_id]["cancelled"] = False
+        admin_data[user_id] = {"cancelled": False}
         text, keyboard = add_cancel_button("Введите ID товара для редактирования:")
         msg = bot.send_message(message.chat.id, text, reply_markup=keyboard)
         bot.register_next_step_handler(msg, edit_product_id)
@@ -287,7 +278,8 @@ def register(bot):
         admin_data.setdefault(user_id, {"cancelled": False})
         if admin_data[user_id].get("cancelled"):
             return
-        kwargs = {k: v for k, v in admin_data[user_id].items() if k in ["name", "price", "description"] and v is not None}
+        kwargs = {k: v for k, v in admin_data[user_id].items() if
+                  k in ["name", "price", "description"] and v is not None}
 
         if message.text and message.text.lower() == "нет":
             product = ProductService.update_product(admin_data[user_id]["product_id"], **kwargs)
@@ -320,8 +312,10 @@ def register(bot):
         finally:
             session.close()
             admin_data.pop(user_id, None)
+    # (Функции edit_product_id, edit_product_name, edit_product_price, edit_product_description, process_edit_photo остаются как в предыдущей версии,
+    # только с проверкой cancelled через admin_data[user_id].get("cancelled"))
 
-    # --- Просмотр заказов ---
+    # --- Просмотр заказов с редактированием ---
     @bot.message_handler(func=lambda message: message.text == "📋 Список заказов")
     def show_orders(message):
         try:
@@ -329,17 +323,83 @@ def register(bot):
             if not orders:
                 bot.send_message(message.chat.id, "Заказы не найдены.")
                 return
-            response = ""
             for order in orders:
                 user_name = order.name if order.name else "Неизвестный"
-                response += f"Заказ #{order.id} | Пользователь: {user_name}\n"
-                total = 0
-                for item in order.items:
-                    product_name = item.product.name if item.product else "Неизвестный продукт"
-                    subtotal = (item.product.price if item.product else 0) * item.quantity
-                    total += subtotal
-                    response += f"  - {product_name} x {item.quantity} = {subtotal}₽\n"
-                response += f"Итого: {total}₽\n\n"
-            bot.send_message(message.chat.id, response)
+                total = sum((item.product.price if item.product else 0) * item.quantity for item in order.items)
+                response = f"Заказ #{order.id} | Пользователь: {user_name} | Статус: {order.status} | Итого: {total}₽"
+
+                keyboard = types.InlineKeyboardMarkup()
+                keyboard.add(types.InlineKeyboardButton(
+                    "✏️ Редактировать статус",
+                    callback_data=f"edit_order:{order.id}"
+                ))
+                bot.send_message(message.chat.id, response, reply_markup=keyboard)
         except Exception as e:
             bot.send_message(message.chat.id, f"❌ Ошибка при получении заказов: {e}")
+
+    # --- Редактирование статуса заказа ---
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("edit_order:"))
+    def edit_order(call):
+        if not is_admin(call):
+            bot.answer_callback_query(call.id, "❌ У вас нет доступа")
+            return
+        order_id = int(call.data.split(":")[1])
+        keyboard = types.InlineKeyboardMarkup()
+        for status in ["Новый", "В обработке", "Отправлен", "Выполнен", "Отменен"]:
+            keyboard.add(types.InlineKeyboardButton(
+                status,
+                callback_data=f"status:{order_id}:{status}"
+            ))
+        bot.edit_message_text(
+            f"Выберите новый статус для заказа #{order_id}:",
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=keyboard
+        )
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("status:"))
+    def change_order_status(call):
+        if not is_admin(call):
+            bot.answer_callback_query(call.id, "❌ У вас нет доступа")
+            return
+
+        parts = call.data.split(":")
+        order_id = int(parts[1])
+        new_status = parts[2]
+
+        try:
+            order = OrderService.update_status(order_id, new_status)
+            if order:
+                bot.edit_message_text(
+                    f"✅ Статус заказа #{order.id} изменен на '{new_status}'",
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id
+                )
+            else:
+                bot.answer_callback_query(call.id, "❌ Заказ не найден")
+        except Exception as e:
+            bot.answer_callback_query(call.id, f"❌ Ошибка: {e}")
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("status:"))
+    def change_order_status(call):
+        if not is_admin(call):
+            bot.answer_callback_query(call.id, "❌ У вас нет доступа")
+            return
+
+        parts = call.data.split(":")
+        order_id = int(parts[1])
+        new_status = parts[2]
+
+        try:
+            order = OrderService.update_status(order_id, new_status)
+            if order:
+                bot.edit_message_text(
+                    f"✅ Статус заказа #{order.id} изменен на '{new_status}'",
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id
+                )
+            else:
+                bot.answer_callback_query(call.id, "❌ Заказ не найден")
+        except Exception as e:
+            bot.answer_callback_query(call.id, f"❌ Ошибка: {e}")
+

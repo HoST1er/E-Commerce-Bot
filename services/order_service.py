@@ -163,3 +163,17 @@ class OrderService:
             return orders
         finally:
             session.close()
+
+
+    @staticmethod
+    def update_status(order_id: int, new_status: str):
+        session = SessionLocal()
+        try:
+            order = session.query(Order).filter(Order.id == order_id).first()
+            if not order:
+                return None
+            order.status = new_status
+            session.commit()
+            return order
+        finally:
+            session.close()
