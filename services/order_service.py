@@ -3,7 +3,10 @@ from services.db import SessionLocal
 from models.order import Order
 from models.order_item import OrderItem
 from models.product import Product
+from models.user import User
 from utils.logger import logger
+from sqlalchemy.orm import joinedload
+
 
 
 class OrderService:
@@ -145,5 +148,18 @@ class OrderService:
             order.status = status
             session.commit()
             return order
+        finally:
+            session.close()
+
+    @staticmethod
+    def get_all_orders():
+        session = SessionLocal()
+        try:
+            orders = (session.query(Order).options(
+                joinedload(Order.user),          # подтягиваем юзера
+                joinedload(Order.items).joinedload(OrderItem.product)  # подтягиваем продукты
+            ).all())
+
+            return orders
         finally:
             session.close()

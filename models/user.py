@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
+
 from services.db import Base
 
 
@@ -10,6 +12,9 @@ class User(Base):
     first_name = Column(String(255))
     last_name = Column(String(255), nullable=True)
     phone = Column(String(50), nullable=True)
+    orders = relationship("Order", back_populates="user", overlaps="user")
+    #user = relationship("Order", back_populates="user")  # 👈 добавляем
+
 
     def __repr__(self):
         return f"<User(id={self.id}, telegram_id={self.telegram_id}, name={self.first_name})>"

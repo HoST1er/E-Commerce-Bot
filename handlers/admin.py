@@ -9,6 +9,7 @@ admin_data = {}
 
 # Список админов (Telegram ID)
 ADMIN_IDS = [328729390]
+#ADMIN_IDS = [328729391]
 
 
 def main_keyboard(user_id):
@@ -129,34 +130,57 @@ def register(bot):
 
     # --- Просмотр всех заказов ---
     @bot.message_handler(func=lambda message: message.text == "📦 Список заказов")
-    def view_orders(message):
-        if not is_admin(message):
-            bot.send_message(message.chat.id, "❌ У вас нет доступа к этой команде")
-            return
-
+    def show_orders(message):
         try:
-            orders = OrderService.list_all_orders()
+            orders = OrderService.get_all_orders()
             if not orders:
-                bot.send_message(message.chat.id, "Список заказов пуст.")
+                bot.send_message(message.chat.id, "Заказы не найдены.")
                 return
 
+            response = ""
             for order in orders:
-                items_text = "\n".join(
-                    [f"{i.product.name} x{i.quantity} - {i.price} руб." for i in order.products]
-                )
+                user_name = order.name if order.name else "Неизвестный"
+                response += f"Заказ #{order.id} | Пользователь: {user_name}\n"
+                total = 0
+                for item in order.items:
+                    product_name = item.product.name if item.product else "Неизвестный продукт"
+                    subtotal = (item.product.price if item.product else 0) * item.quantity
+                    total += subtotal
+                    response += f"  - {product_name} x {item.quantity} = {subtotal}₽\n"
+                response += f"Итого: {total}₽\n\n"
 
-                bot.send_message(
-                    message.chat.id,
-                    f"🆔 Заказ №{order.id}\n"
-                    f"Статус: {order.status}\n"
-                    f"Сумма: {order.total} руб.\n"
-                    f"Способ доставки: {order.delivery}\n"
-                    f"Адрес: {order.address}\n"
-                    f"Дата: {order.created_at}\n"
-                    f"Товары:\n{items_text}"
-                )
+            bot.send_message(message.chat.id, response)
         except Exception as e:
             bot.send_message(message.chat.id, f"❌ Ошибка при получении заказов: {e}")
+
+    # def view_orders(message):
+    #     if not is_admin(message):
+    #         bot.send_message(message.chat.id, "❌ У вас нет доступа к этой команде")
+    #         return
+    #
+    #     try:
+    #         orders = OrderService.list_all_orders()
+    #         if not orders:
+    #             bot.send_message(message.chat.id, "Список заказов пуст.")
+    #             return
+    #
+    #         for order in orders:
+    #             items_text = "\n".join(
+    #                 [f"{i.product.name} x{i.quantity} - {i.price} руб." for i in order.products]
+    #             )
+    #
+    #             bot.send_message(
+    #                 message.chat.id,
+    #                 f"🆔 Заказ №{order.id}\n"
+    #                 f"Статус: {order.status}\n"
+    #                 f"Сумма: {order.total} руб.\n"
+    #                 f"Способ доставки: {order.delivery}\n"
+    #                 f"Адрес: {order.address}\n"
+    #                 f"Дата: {order.created_at}\n"
+    #                 f"Товары:\n{items_text}"
+    #             )
+    #     except Exception as e:
+    #         bot.send_message(message.chat.id, f"❌ Ошибка при получении заказов: {e}")
 
     # --- Редактирование товара ---
     @bot.message_handler(func=lambda message: message.text == "✏️ Редактировать товар")

@@ -11,8 +11,7 @@ engine = create_engine(
 )
 
 # --- Сессии ---
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 # --- Базовый класс моделей ---
 Base = declarative_base()
 
