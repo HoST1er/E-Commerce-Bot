@@ -21,7 +21,7 @@ def main_keyboard(user_id):
         # Кнопки для админа
         keyboard.add("➕ Добавить товар")
         keyboard.add("✏️ Редактировать товар")
-        keyboard.add("📦 Список заказов")
+        keyboard.add("📋 Список заказов")
         keyboard.add("🛍️ Каталог", "🛒 Корзина")
         keyboard.add("📦 Мои заказы")
     else:
@@ -129,7 +129,7 @@ def register(bot):
         admin_data.pop(user_id, None)
 
     # --- Просмотр всех заказов ---
-    @bot.message_handler(func=lambda message: message.text == "📦 Список заказов")
+    @bot.message_handler(func=lambda message: message.text == "📋 Список заказов")
     def show_orders(message):
         try:
             orders = OrderService.get_all_orders()
