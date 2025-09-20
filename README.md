@@ -17,9 +17,11 @@ git clone https://github.com/HoST1er/E-Commerce-Bot.git
 cd E-Commerce-Bot
 2. Установить зависимости
 pip install -r requirements.txt
-3. Заполнение таблиц данными
+3. Создание таблиц
+python create_tables.py
+4. Заполнение таблиц данными
 python seed.py
-4. Запустить бота
+5. Запустить бота
 python bot.py
 
 ## Архитектура проекта
