@@ -11,11 +11,15 @@ def register(bot):
             return
 
         for o in orders:
+            if o['delivery'] == 'courier':
+                delivery = 'Курьером'
+            else:
+                delivery = 'Самовывоз'
             text = (
                 f"🆔 Заказ №{o['id']}\n"
                 f"Статус: {o['status']}\n"
                 f"Сумма: {o['total']} руб.\n"
-                f"Способ доставки: {o['delivery']}\n"
+                f"Способ доставки: {delivery}\n"
                 f"Адрес: {o['address']}\n"
                 f"Дата: {o['created_at']}\n\n"
                 "🛒 Товары в заказе:\n"
